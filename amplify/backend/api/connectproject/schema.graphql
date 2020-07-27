@@ -1,0 +1,275 @@
+enum SessionStatus {
+  pendingAdmin
+  pendingTutor
+  pendingStudent
+  approved
+  canceled
+}
+
+enum PaymentName {
+  PayPal
+  TransferWise
+  WesternUnion
+  Xoom
+  Other
+}
+
+enum UserableType {
+  Admin
+  Student
+  Tutor
+}
+
+type User
+  @model
+  @auth(
+    rules: [
+      { allow: owner }
+      # { allow: private, operations: [read] }
+      { allow: owner, ownerField: "tutorUserName", operations: [read, update] }
+      { allow: groups, groups: ["admins"] }
+      { allow: owner, ownerField: "tutorsUserNames", operations: [read] }
+      { allow: owner, ownerField: "studentsUserNames", operations: [read] }
+    ]
+  )
+  @key(name: "profileByUser", fields: ["profileID"])
+  @key(name: "userableByType", fields: ["userableID"]) {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  userName: String!
+  email: String!
+  avatarUrl: String!
+  approved: Boolean!
+  profileID: ID!
+  userableID: ID!
+  userableType: UserableType!
+
+  # Auth feilds
+  tutorUserName: String
+  studentsUserNames: [String]
+  tutorsUserNames: [String]
+
+  # Connections feilds
+  profile: Profile @connection(fields: ["profileID"])
+  admin: Admin @connection(fields: ["userableID"])
+  tutor: Tutor @connection(fields: ["userableID"])
+  student: Student @connection(fields: ["userableID"])
+  testimonialsToThisUser: [Testimonial]
+    @connection(keyName: "testimonialsToUser", fields: ["id"])
+  # testimonialsFromThisUser: [Testimonial] @connection(keyName: "testimonialsFromUser", fields: ["id"])
+}
+
+type Profile
+  @model
+  @auth(
+    rules: [
+      { allow: owner }
+      # { allow: private, operations: [read] }
+      { allow: owner, ownerField: "tutorUserName", operations: [read, update] }
+      { allow: groups, groups: ["admins"] }
+      { allow: owner, ownerField: "tutorsUserNames", operations: [read] }
+      { allow: owner, ownerField: "studentsUserNames", operations: [read] }
+    ]
+  ) {
+  id: ID!
+  skypeID: String
+  originCity: String
+  originCountry: String
+  interest: String
+  facts: String
+
+  # Auth feilds
+  tutorUserName: String
+  studentsUserNames: [String]
+  tutorsUserNames: [String]
+
+  # Connections feilds
+  user: [User] @connection(keyName: "profileByUser", fields: ["id"])
+}
+
+type Testimonial
+  @model
+  @auth(
+    rules: [
+      { allow: owner }
+      { allow: owner, ownerField: "receiverUserName", operations: [read] }
+      # { allow: private, operations: [read] }
+      { allow: groups, groups: ["admins"] }
+    ]
+  )
+  @key(name: "testimonialsToUser", fields: ["toUserID"]) {
+  # @key(name: "testimonialsFromUser", fields: ["fromUserID"])
+  id: ID!
+  toUserID: ID!
+  fromUserID: ID!
+  rating: AWSJSON
+  comment: String!
+
+  # Auth feilds
+  receiverUserName: String
+
+  # Connection feilds
+  to: User @connection(fields: ["toUserID"])
+  from: User @connection(fields: ["fromUserID"])
+}
+
+type Student
+  @model
+  @auth(
+    rules: [
+      { allow: owner }
+      { allow: owner, ownerField: "tutorUserName", operations: [read, update] }
+      # { allow: private, operations: [read] }
+      { allow: groups, groups: ["admins"] }
+    ]
+  )
+  @key(name: "studentsByTutor", fields: ["tutorID"])
+  @key(name: "studentsByAdmin", fields: ["adminID"]) {
+  id: ID!
+  tutorID: ID!
+  adminID: ID!
+  creditsRemaining: Int!
+
+  # Auth feilds
+  tutorUserName: String!
+
+  # Connection feilds
+  tutor: Tutor @connection(fields: ["tutorID"])
+  admin: Admin @connection(fields: ["adminID"])
+  user: [User] @connection(keyName: "userableByType", fields: ["id"])
+  seassions: [Session]
+    @connection(keyName: "sessionFromStudent", fields: ["id"])
+}
+
+type Tutor
+  @model
+  @auth(
+    rules: [
+      { allow: owner }
+      { allow: owner, ownerField: "studentsUserNames", operations: [read] }
+      # { allow: private, operations: [read] }
+      { allow: groups, groups: ["admins"] }
+    ]
+  )
+  @key(name: "paymentByTutor", fields: ["paymentMethodID"])
+  @key(name: "tutorsByAdmin", fields: ["adminID"]) {
+  id: ID!
+  adminID: ID!
+  paymentMethodID: ID!
+
+  # Auth feilds
+  studentsUserNames: [String]
+
+  # Connection feilds
+  admin: Admin @connection(fields: ["adminID"])
+  stundents: [Student] @connection(keyName: "studentsByTutor", fields: ["id"])
+  paymentMethod: PaymentMethod @connection(fields: ["paymentMethodID"])
+  user: [User] @connection(keyName: "userableByType", fields: ["id"])
+  seassions: [Session] @connection(keyName: "sessionToTutor", fields: ["id"])
+}
+
+type Admin
+  @model
+  @auth(
+    rules: [
+      { allow: owner }
+      { allow: owner, ownerField: "tutorsUserNames", operations: [read] }
+      { allow: owner, ownerField: "studentsUserNames", operations: [read] }
+      # { allow: private, operations: [read] }
+      { allow: groups, groups: ["admins"] }
+    ]
+  ) {
+  id: ID!
+  super: Boolean!
+
+  # Auth feilds
+  tutorsUserNames: [String]
+  studentsUserNames: [String]
+
+  # Connection feilds
+  user: [User] @connection(keyName: "userableByType", fields: ["id"])
+  stundents: [Student] @connection(keyName: "studentsByAdmin", fields: ["id"])
+  tutors: [Tutor] @connection(keyName: "tutorsByAdmin", fields: ["id"])
+}
+
+type Session
+  @model
+  @auth(
+    rules: [
+      { allow: owner }
+      { allow: owner, ownerField: "receiverUserName", operations: [read] }
+      # { allow: private, operations: [read] }
+      { allow: groups, groups: ["admins"] }
+    ]
+  )
+  @key(name: "sessionFromStudent", fields: ["fromStudentID"])
+  @key(name: "sessionToTutor", fields: ["toTutorID"]) {
+  id: ID!
+  toTutorID: ID!
+  fromStudentID: ID!
+  startTime: AWSDateTime!
+  endTime: AWSDateTime! # 1930-01-01T16:00:00-07:00
+  status: SessionStatus!
+
+  # Auth feilds
+  receiverUserName: String
+
+  # Connection feilds
+  tutor: Tutor @connection(fields: ["toTutorID"])
+  student: Student @connection(fields: ["fromStudentID"])
+}
+
+type PaymentMethod
+  @model
+  @auth(
+    rules: [
+      { allow: owner }
+      { allow: owner, ownerField: "tutorUserName", operations: [read] }
+      # { allow: private, operations: [read] }
+      { allow: groups, groups: ["admins"] }
+    ]
+  ) {
+  id: ID!
+  name: PaymentName!
+  information: AWSJSON
+
+  # Auth feilds
+  tutorUserName: String
+
+  # Connection feilds
+  tutor: [Tutor] @connection(keyName: "paymentByTutor", fields: ["id"])
+  FundDeposit: [FundDeposit]
+    @connection(keyName: "fundByPayment", fields: ["id"])
+}
+
+type FundDeposit
+  @model
+  @auth(
+    rules: [
+      { allow: owner }
+      { allow: owner, ownerField: "tutorUserName", operations: [read] }
+      # { allow: private, operations: [read] }
+      { allow: groups, groups: ["admins"] }
+    ]
+  )
+  @key(name: "fundByPayment", fields: ["paymentMethodID"]) {
+  id: ID!
+  amountWhole: Int!
+  amountDecimal: Int!
+  tutorID: ID!
+  completed: Boolean!
+  paymentMethodID: ID!
+
+  # Auth feilds
+  tutorUserName: String
+
+  # Connection feilds
+  tutor: Tutor @connection(fields: ["tutorID"])
+  paymentMethod: PaymentMethod @connection(fields: ["paymentMethodID"])
+}
+
+# TODO
+#   1. ask about the admin record auths (should other admins has access to it and what access) 
+#   2. ask about the privet auth if I shuold make it or not
+#   3. ask about the payment, and the fundDeposit records

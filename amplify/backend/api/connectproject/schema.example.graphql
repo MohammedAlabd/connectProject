@@ -1,0 +1,70 @@
+type Department @model {
+  id: ID!
+  name: String
+  manager: Employee @connection
+  employees: [Employee] @connection(keyName: "byDepartment", fields: ["id"])
+}
+
+type Employee
+  @model
+  # key used to help with many to one relations
+  @key(name: "byDepartment", fields: ["department_id", "name"]) {
+  id: ID!
+  name: String
+  age: Int
+  department_id: ID!
+  department: Department @connection(fields: ["department_id"])
+}
+
+type Blog
+  @model
+  @auth(
+    rules: [
+    # this rule is to give full permisions to the owner [read, write, update, delete]
+      { allow: owner }
+    # this rule is to give read permisions to every one signed in the website "with valid JWT"
+      { allow: private, operations: [read] }
+    # this rule is to give full permisions to the users from admin groups "the admins" [read, write, update, delete]
+      { allow: groups, groups: ["admins"] }
+    ]
+  ) {
+  id: ID!
+  name: String!
+  editors: String!
+  #connect tow tables using a M:1 relation "M posts : 1 Blog"
+  posts: [Post] @connection(keyName: "byBlog", fields: ["id"])
+}
+
+type Post
+  @model
+  # key used to help with many to one relations
+  @key(name: "byBlog", fields: ["blogID"])
+  @auth(
+    rules: [
+      { allow: owner }
+      { allow: groups, groups: ["admins"] }
+    ]
+  ) {
+  id: ID!
+  title: String!
+  blogID: ID!
+  editors: String!
+  blog: Blog @connection(fields: ["blogID"])
+  comments: [Comment] @connection(keyName: "byPost", fields: ["id"])
+}
+
+type Comment
+  @model
+  @key(name: "byPost", fields: ["postID", "content"])
+  @auth(
+    rules: [
+      { allow: owner }
+      { allow: private, operations: [read] }
+      { allow: groups, groups: ["admins"] }
+    ]
+  ) {
+  id: ID!
+  postID: ID!
+  post: Post @connection(fields: ["postID"])
+  content: String!
+}
