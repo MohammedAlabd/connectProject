@@ -1,5 +1,7 @@
 ## Before you start:
-You need to set up your AWS security credentials before the sample code is able
+1. install the Amplify CLI `npm install -g @aws-amplify/cli`
+
+2. You need to set up your AWS security credentials before the sample code is able
 to connect to AWS. You can do this by creating a file named "credentials" at `~/.aws/` 
 `(C:\Users\USER_NAME\.aws\ for Windows users)` and saving the following lines in the file:
 
@@ -9,18 +11,17 @@ to connect to AWS. You can do this by creating a file named "credentials" at `~/
     aws_secret_access_key = <your secret key>
     ```
 ## connect to the amplify CLI:
-1. install the Amplify CLI `npm install -g @aws-amplify/cli`
-2. run this command `amplify init`
-3. will ask you if you want to use existing environment, say yes
-5. Choose the dev env
-6. choose your default code editor
-7. will ask you "Do you want to use an AWS profile?" say yes
-8. choose a profile you want to use
-9. Type amplify Pull
-10. Your schema will be at a file with name __schema.graphql__ you can find it at *`\backend\api\connectproject\schema.graphql`* 
-11. You can change it if you want and then type `amplify push` in the terminal to push the changes
-12. to generate the code (__mutations, queries, subscriptions__) type `amplify codegen add` in the terminal
-13. choose the language you want it in
+1. run this command `amplify init`
+2. will ask you if you want to use existing environment, say yes
+3. Choose the dev env
+4. choose your default code editor
+5. will ask you "Do you want to use an AWS profile?" say yes
+6. choose a profile you want to use
+7. Type amplify Pull
+8. Your schema will be at a file with name __schema.graphql__ you can find it at *`\backend\api\connectproject\schema.graphql`* 
+9. You can change it if you want and then type `amplify push` in the terminal to push the changes
+10. to generate the code (__mutations, queries, subscriptions__) type `amplify codegen add` in the terminal
+11. choose the language you want it in
 
 
 
