@@ -17,7 +17,7 @@ to connect to AWS. You can do this by creating a file named "credentials" at `~/
 4. choose your default code editor
 5. will ask you "Do you want to use an AWS profile?" say yes
 6. choose a profile you want to use
-7. Type amplify Pull
+7. Type `amplify pull`
 8. Your schema will be at a file with name __schema.graphql__ you can find it at *`\backend\api\connectproject\schema.graphql`* 
 9. You can change it if you want and then type `amplify push` in the terminal to push the changes
 10. to generate the code (__mutations, queries, subscriptions__) type `amplify codegen add` in the terminal
